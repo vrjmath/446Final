@@ -31,11 +31,13 @@ def test_epoch(net, loader):
 def train_epoch(net, loader, optimizer, cost):
     # we transfer the mode of network to train
     net.train()
-    
+
     batch_loss = AvgMeter()
+
     for batch_idx, (data, label) in enumerate(loader):
-        data = Variable(data.cuda())
-        label = Variable(label.cuda())
+
+        data = Variable(data)
+        label = Variable(label)
 
         output = net(data)
 
@@ -53,33 +55,33 @@ def train_epoch(net, loader, optimizer, cost):
 def main(args):
     ckpt_path = os.path.join(args.output_path, "Checkpoint")
     log_path = os.path.join(args.output_path, "Log")
-    
+
     # this is just for my path, remember to change if you use your own dir
     check_dir("../output/")
     check_dir(args.output_path)
     check_dir(log_path)
     check_dir(ckpt_path)
 
-    torch.cuda.set_device(args.gpu_id)
+    #torch.cuda.set_device(args.gpu_id)
     train_list, test_list = create_list(args.data_path, ratio=args.train_ratio)
-    
+
     # define the dataset and loader
     train_set = MySet(train_list)
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
     test_set = MySet(test_list)
     test_loader = DataLoader(test_set, batch_size=1, shuffle=False)
-    
+
     # define the network and load the init weight
-    net = UNet.UNet().cuda()
+    net = UNet.UNet()
     if args.is_load:
         net.load_state_dict(torch.load(args.load_path))
-    
+
     # define the optimizer of the training process
     optimizer = torch.optim.Adam(
         net.parameters(),
         lr=args.lr,
     )
-    
+
     # define the loss function
     cost = torch.nn.BCELoss()
     best_dice = 0.
@@ -96,7 +98,7 @@ def main(args):
         )
         print(info_line)
         open(os.path.join(log_path, 'train_log.txt'), 'a').write(info_line+'\n')
-        
+
         # save the checkpoint
         torch.save(net.state_dict(), os.path.join(ckpt_path, "Network_{}.pth.gz".format(epoch)))
         if epoch_dice > best_dice:

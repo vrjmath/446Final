@@ -29,19 +29,17 @@ class MySet(Dataset):
 
     def __getitem__(self, item):
         data_dict = self.data_list[item]
+
         data_path = data_dict["data"]
         mask_path = data_dict["label"]
 
-        data = nib.load(data_path)
-        data = data.get_fdata()
+        data = np.load(data_path)[0]
 
-        mask = nib.load(mask_path)
-        mask = mask.get_fdata()
+        mask = np.load(mask_path)
 
         data = self.normalize(data)
         data = data[np.newaxis, :, :, :]
         mask = mask.astype(np.float32)
-        # mask = mask[np.newaxis, :, :, :]
 
         mask_tensor = torch.from_numpy(mask)
         data_tensor = torch.from_numpy(data)
@@ -69,20 +67,19 @@ def create_list(data_path, ratio=0.8):
             image.nii
             label.nii
         ...
-    if u use your own data, u can rewrite this function 
+    if u use your own data, u can rewrite this function
     """
-    data_list = glob.glob(os.path.join(data_path, '*'))
+    filedirTrain = 'C:/Users/Viraj/Documents/UIUC/Sem 3/CS 446/FA20_CS446_Project_Data/data_pub/train/'
+    size = int(len(glob.glob1(filedirTrain,"*.npy"))/2)
 
-    label_name = 'label.nii'
-    data_name = 'image.nii'
+    train_list = list()
+    for i in range(size):
+        train_list.append({'data': os.path.join(filedirTrain, '%03d_imgs.npy'%(i+1)), 'label': os.path.join(filedirTrain, '%03d_seg.npy'%(i+1))})
 
-    data_list.sort()
-    list_all = [{'data': os.path.join(path, data_name), 'label': os.path.join(path, label_name)} for path in data_list]
-
-    cut = int(ratio * len(list_all))
-    train_list = list_all[:cut]
-    test_list = list_all[cut:]
-
+    filedirVal = 'C:/Users/Viraj/Documents/UIUC/Sem 3/CS 446/FA20_CS446_Project_Data/data_pub/validation/'
+    size = int(len(glob.glob1(filedirVal,"*.npy"))/2)
+    test_list = list()
+    for i in range(size):
+        test_list.append({'data': os.path.join(filedirVal, '%03d_imgs.npy'%(i+1)), 'label': os.path.join(filedirVal, '%03d_seg.npy'%(i+1))})
     random.shuffle(train_list)
-
     return train_list, test_list
